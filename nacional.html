@@ -3,28 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Producción Nacional</title>
+  <title>Minería Nacional</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <!-- Menú lateral -->
   <nav class="sidebar">
-    <h2>Minería CO</h2>
+    <h2><i class="fas fa-gem"></i> Minería CO</h2>
     <ul>
-      <li><a href="index.html">Principal</a></li>
-      <li><a href="departamentos.html">Por Departamento</a></li>
-      <li><a href="nacional.html">Nacional</a></li>
+      <li><a href="index.html"><i class="fas fa-home"></i> Principal</a></li>
+      <li><a href="departamentos.html"><i class="fas fa-map-marker-alt"></i> Por Departamento</a></li>
+      <li><a href="nacional.html"><i class="fas fa-flag"></i> Nacional</a></li>
     </ul>
   </nav>
 
-  <!-- Contenido principal -->
   <main class="content">
-    <h1>Producción Nacional (2012 - 2024)</h1>
-    <p>Evolución de la producción minera total por año.</p>
-    
-    <canvas id="graficoNacional"></canvas>
+    <h1><i class="fas fa-flag"></i> Estadísticas Nacionales</h1>
+    <p>Principales minerales a nivel nacional y departamentos con mayor producción.</p>
+    <canvas id="graficoTopNacional"></canvas>
+    <canvas id="graficoDepartamentosTop"></canvas>
   </main>
 
   <script src="nacional.js"></script>
