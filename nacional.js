@@ -5,44 +5,52 @@ document.addEventListener("DOMContentLoaded", () => {
     skipEmptyLines: true,
     complete: function(results) {
       const data = results.data;
+      const minerales = {};
+      const departamentos = {};
 
-      const nacional = {};
       data.forEach(row => {
-        let anio = row["Año Produccion"] || row["Año_Produccion"] || "";
-        anio = anio.replace(/[^0-9]/g, ""); // limpiar 2,015 -> 2015
+        let mineral = row["Recurso Natural"] || row["Recurso_Natural"];
+        let dep = row["Departamento"];
         let cantidadStr = row["Cantidad Producción"] || row["Cantidad Produccion"] || "0";
         let produccion = parseFloat(cantidadStr.replace(/,/g, "")) || 0;
 
-        if (anio && produccion > 0) {
-          nacional[anio] = (nacional[anio] || 0) + produccion;
+        if (mineral) {
+          minerales[mineral] = (minerales[mineral] || 0) + produccion;
+        }
+        if (dep) {
+          departamentos[dep] = (departamentos[dep] || 0) + produccion;
         }
       });
 
-      const labels = Object.keys(nacional).sort();
-      const values = labels.map(anio => nacional[anio]);
+      // Top 5 minerales
+      const topMinerales = Object.entries(minerales).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-      new Chart(document.getElementById("graficoNacional"), {
-        type: "line",
+      new Chart(document.getElementById("graficoTopNacional"), {
+        type: "bar",
         data: {
-          labels: labels,
+          labels: topMinerales.map(item => item[0]),
           datasets: [{
-            label: "Producción Total Nacional",
-            data: values,
-            borderColor: "rgba(231, 76, 60, 0.9)",
-            fill: false
+            label: "Producción Total",
+            data: topMinerales.map(item => item[1]),
+            backgroundColor: "rgba(231, 76, 60, 0.7)"
           }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: "Producción Nacional Anual"
-            }
-          }
+        }
+      });
+
+      // Top 5 departamentos
+      const topDeps = Object.entries(departamentos).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      new Chart(document.getElementById("graficoDepartamentosTop"), {
+        type: "bar",
+        data: {
+          labels: topDeps.map(item => item[0]),
+          datasets: [{
+            label: "Producción Total",
+            data: topDeps.map(item => item[1]),
+            backgroundColor: "rgba(155, 89, 182, 0.7)"
+          }]
         }
       });
     }
   });
 });
-
