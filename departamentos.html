@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Producción por Departamento</title>
+  <title>Minería por Departamento</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -19,15 +19,97 @@
     </ul>
   </nav>
 
-  <!-- Contenido principal -->
+  <!-- Contenido -->
   <main class="content">
     <h1>Producción minera por Departamento</h1>
-    <p>Comparación de la producción total de minerales por departamento.</p>
-    
-    <canvas id="graficoDepartamentos"></canvas>
+    <label for="departamentoSelect">Seleccione un departamento:</label>
+    <select id="departamentoSelect"></select>
+
+    <h2>Top Minerales del Departamento</h2>
+    <canvas id="graficoDeptoBarras"></canvas>
+
+    <h2>Proporción de Minerales en el Departamento</h2>
+    <canvas id="graficoDeptoTorta"></canvas>
   </main>
 
-  <script src="departamentos.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      Papa.parse("datos/mineria.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const data = results.data;
+          if (!data || data.length === 0) return;
+
+          // Extraer lista de departamentos únicos
+          const departamentos = [...new Set(data.map(row => row["Departamento"]))];
+          const select = document.getElementById("departamentoSelect");
+          departamentos.forEach(dep => {
+            const opt = document.createElement("option");
+            opt.value = dep;
+            opt.textContent = dep;
+            select.appendChild(opt);
+          });
+
+          let chartBarras, chartTorta;
+
+          function actualizarGraficos(departamento) {
+            const mineralesDepto = {};
+
+            data.forEach(row => {
+              if (row["Departamento"] === departamento) {
+                const mineral = row["Recurso Natural"];
+                let cantidad = parseFloat((row["Cantidad Producción"] || "0").replace(/,/g, ""));
+                if (!isNaN(cantidad)) {
+                  mineralesDepto[mineral] = (mineralesDepto[mineral] || 0) + cantidad;
+                }
+              }
+            });
+
+            const entries = Object.entries(mineralesDepto).sort((a,b) => b[1] - a[1]);
+            const top = entries.slice(0, 5);
+            const labelsBarras = top.map(x => x[0]);
+            const valoresBarras = top.map(x => x[1]);
+
+            const labelsTorta = entries.map(x => x[0]);
+            const valoresTorta = entries.map(x => x[1]);
+
+            // Destruir gráficos anteriores si existen
+            if (chartBarras) chartBarras.destroy();
+            if (chartTorta) chartTorta.destroy();
+
+            // Barras
+            chartBarras = new Chart(document.getElementById("graficoDeptoBarras"), {
+              type: "bar",
+              data: {
+                labels: labelsBarras,
+                datasets: [{ label: "Producción", data: valoresBarras, backgroundColor: "rgba(46, 204, 113,0.7)" }]
+              },
+              options: { responsive: true }
+            });
+
+            // Torta
+            chartTorta = new Chart(document.getElementById("graficoDeptoTorta"), {
+              type: "pie",
+              data: {
+                labels: labelsTorta,
+                datasets: [{ data: valoresTorta, backgroundColor: ["#e74c3c","#3498db","#2ecc71","#f1c40f","#9b59b6","#34495e"] }]
+              },
+              options: { responsive: true }
+            });
+          }
+
+          // Inicializar con el primer departamento
+          actualizarGraficos(departamentos[0]);
+
+          // Escuchar cambios
+          select.addEventListener("change", (e) => {
+            actualizarGraficos(e.target.value);
+          });
+        }
+      });
+    });
+  </script>
 </body>
 </html>
-
