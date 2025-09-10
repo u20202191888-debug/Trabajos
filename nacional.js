@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const minerales = {};
       const departamentos = {};
 
+      // --- Procesar datos ---
       data.forEach(row => {
         let mineral = row["Recurso Natural"] || row["Recurso_Natural"];
         let dep = row["Departamento"];
@@ -22,33 +23,75 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Top 5 minerales
-      const topMinerales = Object.entries(minerales).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      // --- Datos top minerales (para que no quede saturado) ---
+      const topMinerales = Object.entries(minerales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // 🔹 Solo los 10 principales
 
+      const labelsMinerales = topMinerales.map(item => item[0]);
+      const valoresMinerales = topMinerales.map(item => item[1]);
+
+      // --- Gráfico de dispersión + línea ---
       new Chart(document.getElementById("graficoTopNacional"), {
-        type: "bar",
+        type: "line",
         data: {
-          labels: topMinerales.map(item => item[0]),
+          labels: labelsMinerales,
           datasets: [{
-            label: "Producción Total",
-            data: topMinerales.map(item => item[1]),
-            backgroundColor: "rgba(231, 76, 60, 0.7)"
+            label: "Producción Total de Minerales",
+            data: valoresMinerales,
+            borderColor: "rgba(231, 76, 60, 0.9)",
+            backgroundColor: "rgba(231, 76, 60, 0.7)",
+            fill: false,
+            showLine: true, // 🔹 Conecta los puntos
+            pointRadius: 8,
+            pointHoverRadius: 12
           }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (context) => `${labelsMinerales[context.dataIndex]}: ${context.raw.toLocaleString()}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: "Minerales" }
+            },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: "Producción Total" }
+            }
+          }
         }
       });
 
-      // Top 5 departamentos
-      const topDeps = Object.entries(departamentos).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      // --- Gráfico de barras: Producción por departamento ---
+      const depEntries = Object.entries(departamentos).sort((a, b) => b[1] - a[1]);
+      const labelsDeps = depEntries.map(item => item[0]);
+      const valoresDeps = depEntries.map(item => item[1]);
 
       new Chart(document.getElementById("graficoDepartamentosTop"), {
         type: "bar",
         data: {
-          labels: topDeps.map(item => item[0]),
+          labels: labelsDeps,
           datasets: [{
-            label: "Producción Total",
-            data: topDeps.map(item => item[1]),
-            backgroundColor: "rgba(155, 89, 182, 0.7)"
+            label: "Producción por Departamento",
+            data: valoresDeps,
+            backgroundColor: "rgba(52, 152, 219, 0.7)"
           }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { title: { display: true, text: "Departamentos" } },
+            y: { beginAtZero: true, title: { display: true, text: "Producción Total" } }
+          }
         }
       });
     }
