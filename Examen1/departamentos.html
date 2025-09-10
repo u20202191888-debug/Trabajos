@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minería por Departamento</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+
+  <nav class="sidebar">
+    <h2><i class="fas fa-gem"></i> Minería CO</h2>
+    <ul>
+      <li><a href="index.html"><i class="fas fa-home"></i> Principal</a></li>
+      <li><a href="departamentos.html"><i class="fas fa-map-marker-alt"></i> Por Departamento</a></li>
+      <li><a href="nacional.html"><i class="fas fa-flag"></i> Nacional</a></li>
+    </ul>
+  </nav>
+
+
+  <main class="content">
+    <h1><i class="fas fa-map-marked-alt"></i> Producción minera por Departamento</h1>
+    <p>Seleccione un departamento para visualizar los minerales más extraídos y su proporción.</p>
+
+    <div style="margin: 10px 0;">
+      <label for="departamentoSelect" style="font-weight: bold;">
+        <i class="fas fa-building"></i> Departamento:
+      </label>
+      <select id="departamentoSelect" style="padding: 6px; border-radius: 6px; border: 1px solid #bbb;"></select>
+    </div>
+
+    <h2><i class="fas fa-chart-bar"></i> Top Minerales del Departamento</h2>
+    <canvas id="graficoDeptoBarras"></canvas>
+
+    <h2><i class="fas fa-chart-pie"></i> Proporción de Minerales en el Departamento</h2>
+    <canvas id="graficoDeptoTorta"></canvas>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      Papa.parse("datos/mineria.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const data = results.data;
+          if (!data || data.length === 0) return;
+
+          const departamentos = [...new Set(data.map(row => row["Departamento"]))].filter(Boolean).sort();
+          const select = document.getElementById("departamentoSelect");
+          departamentos.forEach(dep => {
+            const opt = document.createElement("option");
+            opt.value = dep;
+            opt.textContent = dep;
+            select.appendChild(opt);
+          });
+
+          let chartBarras, chartTorta;
+
+          function actualizarGraficos(departamento) {
+            const mineralesDepto = {};
+
+            data.forEach(row => {
+              if (row["Departamento"] === departamento) {
+                const mineral = row["Recurso Natural"];
+                let cantidad = parseFloat((row["Cantidad Producción"] || "0").replace(/,/g, ""));
+                if (!isNaN(cantidad)) {
+                  mineralesDepto[mineral] = (mineralesDepto[mineral] || 0) + cantidad;
+                }
+              }
+            });
+
+            const entries = Object.entries(mineralesDepto).sort((a, b) => b[1] - a[1]);
+            const top = entries.slice(0, 5);
+            const labelsBarras = top.map(x => x[0]);
+            const valoresBarras = top.map(x => x[1]);
+
+            const labelsTorta = entries.map(x => x[0]);
+            const valoresTorta = entries.map(x => x[1]);
+
+            if (chartBarras) chartBarras.destroy();
+            if (chartTorta) chartTorta.destroy();
+
+            chartBarras = new Chart(document.getElementById("graficoDeptoBarras"), {
+              type: "bar",
+              data: {
+                labels: labelsBarras,
+                datasets: [{
+                  label: "Producción",
+                  data: valoresBarras,
+                  backgroundColor: "rgba(46, 204, 113, 0.7)"
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  title: { display: true, text: `Top 5 Minerales en ${departamento}` }
+                }
+              }
+            });
+
+            chartTorta = new Chart(document.getElementById("graficoDeptoTorta"), {
+              type: "pie",
+              data: {
+                labels: labelsTorta,
+                datasets: [{
+                  data: valoresTorta,
+                  backgroundColor: ["#e74c3c","#3498db","#2ecc71","#f1c40f","#9b59b6","#34495e","#16a085","#e67e22","#95a5a6","#1abc9c"]
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  title: { display: true, text: `Distribución de minerales en ${departamento}` }
+                }
+              }
+            });
+          }
+
+          actualizarGraficos(departamentos[0]);
+
+          select.addEventListener("change", (e) => {
+            actualizarGraficos(e.target.value);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
