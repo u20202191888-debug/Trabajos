@@ -5,50 +5,87 @@ document.addEventListener("DOMContentLoaded", () => {
     skipEmptyLines: true,
     complete: function(results) {
       const data = results.data;
-      const departamentos = {};
+      if (!data || data.length === 0) return;
 
-      data.forEach(row => {
-        let dep = row["Departamento"];
-        let cantidadStr = row["Cantidad Producción"] || row["Cantidad Produccion"] || "0";
-        let produccion = parseFloat(cantidadStr.replace(/,/g, "")) || 0;
+      const departamentos = [...new Set(data.map(row => row["Departamento"]))].sort();
+      const select = document.getElementById("departamentoSelect");
 
-        if (dep && produccion > 0) {
-          departamentos[dep] = (departamentos[dep] || 0) + produccion;
-        }
+      departamentos.forEach(dep => {
+        const opt = document.createElement("option");
+        opt.value = dep;
+        opt.textContent = dep;
+        select.appendChild(opt);
       });
 
-      // Top 5 departamentos
-      const topDeps = Object.entries(departamentos)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+      let chartBarras, chartTorta;
 
-      new Chart(document.getElementById("graficoDepartamentos"), {
-        type: "bar",
-        data: {
-          labels: topDeps.map(item => item[0]),
-          datasets: [{
-            label: "Producción Total",
-            data: topDeps.map(item => item[1]),
-            backgroundColor: "rgba(46, 204, 113, 0.7)"
-          }]
-        },
-        options: { responsive: true }
-      });
+      function actualizarGraficos(departamento) {
+        const mineralesDepto = {};
 
-      // Torta con todos los departamentos
-      new Chart(document.getElementById("graficoTortaDepartamentos"), {
-        type: "pie",
-        data: {
-          labels: Object.keys(departamentos),
-          datasets: [{
-            label: "Producción",
-            data: Object.values(departamentos),
-            backgroundColor: [
-              "#1abc9c","#3498db","#9b59b6","#f1c40f","#e67e22",
-              "#e74c3c","#2ecc71","#34495e","#16a085","#8e44ad"
-            ]
-          }]
-        }
+        data.forEach(row => {
+          if (row["Departamento"] === departamento) {
+            const mineral = row["Recurso_Natural"] || row["Recurso Natural"];
+            let cantidad = parseFloat((row["Cantidad_Produccion"] || "0").replace(/,/g, ""));
+            if (!isNaN(cantidad)) {
+              mineralesDepto[mineral] = (mineralesDepto[mineral] || 0) + cantidad;
+            }
+          }
+        });
+
+        const entries = Object.entries(mineralesDepto).sort((a, b) => b[1] - a[1]);
+        const top = entries.slice(0, 5);
+
+        const labelsBarras = top.map(x => x[0]);
+        const valoresBarras = top.map(x => x[1]);
+
+        const labelsTorta = entries.map(x => x[0]);
+        const valoresTorta = entries.map(x => x[1]);
+
+        if (chartBarras) chartBarras.destroy();
+        if (chartTorta) chartTorta.destroy();
+
+        chartBarras = new Chart(document.getElementById("graficoDeptoBarras"), {
+          type: "bar",
+          data: {
+            labels: labelsBarras,
+            datasets: [{
+              label: "Producción",
+              data: valoresBarras,
+              borderColor: "rgba(206, 215, 31, 0.9)",
+              backgroundColor: "rgba(157, 7, 7, 0.5)",
+              fill: false,
+              showLine: true,
+              pointRadius: 8,
+              pointHoverRadius: 12
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        chartTorta = new Chart(document.getElementById("graficoDeptoTorta"), {
+          type: "pie",
+          data: {
+            labels: labelsTorta,
+            datasets: [{
+              data: valoresTorta,
+              backgroundColor: [
+                "#e74c3c","#3498db","#2ecc71",
+                "#f1c40f","#9b59b6","#34495e",
+                "#1abc9c","#d35400","#7f8c8d"
+              ]
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+
+      actualizarGraficos(departamentos[0]);
+      select.addEventListener("change", (e) => {
+        actualizarGraficos(e.target.value);
       });
     }
   });
