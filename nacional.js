@@ -1,37 +1,40 @@
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Página cargada. Iniciando lectura del CSV...");
+
   Papa.parse("datos/mineria.csv", {
     download: true,
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
+      console.log("📂 Datos cargados del CSV:", results.data);
+
       const data = results.data;
       const minerales = {};
       const departamentos = {};
 
-      // --- Procesar datos ---
-      data.forEach(row => {
-        let mineral = row["Recurso Natural"] || row["Recurso_Natural"];
-        let dep = row["Departamento"];
-        let cantidadStr = row["Cantidad Producción"] || row["Cantidad Produccion"] || "0";
-        let produccion = parseFloat(cantidadStr.replace(/,/g, "")) || 0;
+          data.forEach(row => {
+          console.log("Fila CSV:", row);  // 👈 útil para depurar
 
-        if (mineral) {
-          minerales[mineral] = (minerales[mineral] || 0) + produccion;
-        }
-        if (dep) {
-          departamentos[dep] = (departamentos[dep] || 0) + produccion;
-        }
-      });
+          let mineral = row["Recurso_Natural"];
+          let dep = row["Departamento"];
+          let cantidadStr = row["Cantidad_Produccion"] || "0";
+          let produccion = parseFloat(cantidadStr.replace(/,/g, "")) || 0;
 
-      // --- Datos top minerales (para que no quede saturado) ---
+          if (mineral) {
+            minerales[mineral] = (minerales[mineral] || 0) + produccion;
+          }
+          if (dep) {
+            departamentos[dep] = (departamentos[dep] || 0) + produccion;
+          }
+        });
+
       const topMinerales = Object.entries(minerales)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10); // 🔹 Solo los 10 principales
+        .slice(0, 10);
 
       const labelsMinerales = topMinerales.map(item => item[0]);
       const valoresMinerales = topMinerales.map(item => item[1]);
 
-      // --- Gráfico de dispersión + línea ---
       new Chart(document.getElementById("graficoTopNacional"), {
         type: "line",
         data: {
@@ -42,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
             borderColor: "rgba(231, 76, 60, 0.9)",
             backgroundColor: "rgba(231, 76, 60, 0.7)",
             fill: false,
-            showLine: true, // 🔹 Conecta los puntos
             pointRadius: 8,
             pointHoverRadius: 12
           }]
@@ -52,24 +54,21 @@ document.addEventListener("DOMContentLoaded", () => {
           plugins: {
             tooltip: {
               callbacks: {
-                label: (context) => `${labelsMinerales[context.dataIndex]}: ${context.raw.toLocaleString()}`
+                label: (context) => 
+                  `${labelsMinerales[context.dataIndex]}: ${context.raw.toLocaleString()}`
               }
             }
           },
           scales: {
-            x: {
-              title: { display: true, text: "Minerales" }
-            },
-            y: {
-              beginAtZero: true,
-              title: { display: true, text: "Producción Total" }
-            }
+            x: { title: { display: true, text: "Minerales" } },
+            y: { beginAtZero: true, title: { display: true, text: "Producción Total" } }
           }
         }
       });
 
-      // --- Gráfico de barras: Producción por departamento ---
-      const depEntries = Object.entries(departamentos).sort((a, b) => b[1] - a[1]);
+      const depEntries = Object.entries(departamentos)
+        .sort((a, b) => b[1] - a[1]);
+
       const labelsDeps = depEntries.map(item => item[0]);
       const valoresDeps = depEntries.map(item => item[1]);
 
@@ -97,3 +96,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
