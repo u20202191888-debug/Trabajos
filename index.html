@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minería en Colombia</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+  <nav class="sidebar">
+    <h2><i class="fas fa-gem"></i> Minería CO</h2>
+    <ul>
+      <li><a href="index.html"><i class="fas fa-home"></i> Principal</a></li>
+      <li><a href="departamentos.html"><i class="fas fa-map-marker-alt"></i> Por Departamento</a></li>
+      <li><a href="nacional.html"><i class="fas fa-flag"></i> Nacional</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <!-- MODIFICACIÓN: Nuevo contenedor flexible para imagen y texto -->
+    <div class="header-container">
+      <div class="header-text">
+        <h1><i class="fas fa-chart-bar"></i> Minería en Colombia (2012 - 2024)</h1>
+        
+        <div class="intro-text">
+          <p>Colombia es un país con una gran riqueza en recursos minerales, siendo uno de los principales productores de carbón, oro, esmeraldas y níquel en América Latina. La minería representa una parte significativa de la economía nacional y tiene impactos importantes en el desarrollo regional.</p>
+          <p>Este sitio web ofrece información actualizada sobre la producción minera en Colombia, permitiendo visualizar datos a nivel nacional y por departamento para el período comprendido entre 2012 y 2024.</p>
+        </div>
+      </div>
+      
+      <!-- MODIFICACIÓN: Imagen dentro del contenedor flexible -->
+      <img src="mineria1.jpg" alt="Minería en Colombia" class="header-image">
+    </div>
+    
+    <div class="chart-description">
+      <p>El siguiente gráfico muestra los cinco minerales con mayor producción en Colombia durante el período 2012-2024. Estos datos reflejan la importancia relativa de cada recurso mineral en la economía del país.</p>
+    </div>
+    
+    <canvas id="graficoTopMinerales"></canvas>
+    
+    <img src="mineria4.gif" alt="Animación minería" class="footer-gif">
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("✅ Página cargada. Iniciando lectura del CSV...");
+
+      Papa.parse("datos/mineria.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          console.log("📂 Datos cargados del CSV:", results.data);
+
+          const data = results.data;
+          if (!data || data.length === 0) {
+            return;
+          }
+
+          const minerales = {};
+          data.forEach((row, i) => {
+            let mineral = row["Recurso Natural"] || row["Recurso_Natural"];
+            let cantidadStr = row["Cantidad Producción"] || row["Cantidad Produccion"] || row["Cantidad_Produccion"] || "0";
+            let produccion = parseFloat(cantidadStr.replace(/,/g, "")) || 0;
+
+            if (mineral && produccion > 0) {
+              minerales[mineral] = (minerales[mineral] || 0) + produccion;
+            }
+          });
+
+          console.log("📊 Totales agrupados por mineral:", minerales);
+
+          // Tomar top 5 minerales
+          const topMinerales = Object.entries(minerales)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+          if (topMinerales.length === 0) {
+            return;
+          }
+
+          const labels = topMinerales.map(item => item[0]);
+          const values = topMinerales.map(item => item[1]);
+
+          new Chart(document.getElementById("graficoTopMinerales"), {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "Producción Total",
+                data: values,
+                backgroundColor: "rgba(52, 152, 219, 0.7)"
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: "Top 5 Recursos Naturales Extraídos en Colombia (2012-2024)"
+                }
+              }
+            }
+          });
+        },
+        error: function(err) {
+          console.error("Error loading CSV:", err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
