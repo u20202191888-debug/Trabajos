@@ -150,7 +150,7 @@ canvas {
 .header-image {
   display: block;           
   margin: 20px auto; 
-  max-width: 300px;
+  max-width: 150px;
   border-radius: 8px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.2);
 }
@@ -235,4 +235,5 @@ canvas {
 }
 
 }
+
 
