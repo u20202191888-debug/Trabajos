@@ -122,7 +122,6 @@ canvas {
   height: 400px;  
 }
 
-/* Nuevos estilos agregados */
 .intro-text {
   margin-bottom: 25px;
   line-height: 1.6;
@@ -148,8 +147,9 @@ canvas {
 .header-text {
   flex: 1;
 }
-
 .header-image {
+  display: block;           
+  margin: 20px auto; 
   max-width: 300px;
   border-radius: 8px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.2);
@@ -235,3 +235,4 @@ canvas {
 }
 
 }
+
