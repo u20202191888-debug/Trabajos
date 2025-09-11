@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const departamentos = {};
 
           data.forEach(row => {
-          console.log("Fila CSV:", row);  // 👈 útil para depurar
+          console.log("Fila CSV:", row); 
 
           let mineral = row["Recurso_Natural"];
           let dep = row["Departamento"];
@@ -96,4 +96,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
